@@ -1,0 +1,4 @@
+const CACHE='dahbak-gold-v1';
+const FILES=['./','./index.html','./manifest.webmanifest','./assets/dahbak-logo.png'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));
+self.addEventListener('fetch',e=>{if(e.request.method==='GET' && new URL(e.request.url).origin===location.origin){e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request)));}});

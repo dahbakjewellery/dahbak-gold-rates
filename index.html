@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090909">
+  <meta name="description" content="Dahbak Jewellery live gold rates">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>Dahbak Jewellery | Live Gold Rates</title>
+  <style>
+    :root{color-scheme:dark;--gold:#d8b45a;--muted:#aaa;--panel:#151515}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(ellipse at top,#262019 0,#090909 55%);color:#f7f3e9;font-family:Arial,sans-serif;min-height:100vh}
+    main{max-width:760px;margin:auto;padding:22px 16px 40px}
+    header{text-align:center;padding:12px 0 22px;border-bottom:1px solid #4b3b1c}
+    header img{width:min(100%,340px);height:auto;max-height:170px;object-fit:contain}
+    .brand{color:var(--gold);letter-spacing:2px;font-size:14px;margin-top:8px}
+    .arabic{color:#e6d5a7;font-size:17px;margin-top:5px}
+    .eyebrow{color:var(--muted);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:26px 0 8px}
+    .spot{font-size:clamp(34px,9vw,58px);font-weight:700;color:var(--gold);text-align:center}
+    .unit{text-align:center;color:var(--muted);font-size:13px;margin-top:5px}
+    .quote-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0}
+    .panel{background:linear-gradient(145deg,#1c1b19,#101010);border:1px solid #554522;border-radius:14px;padding:18px;text-align:center}
+    .panel span{display:block;color:var(--muted);font-size:12px;letter-spacing:2px;margin-bottom:9px}
+    .panel strong{font-size:clamp(20px,5vw,28px);color:#f3dfaa}
+    h2{font-size:17px;font-weight:500;color:#e5d2a0;margin:30px 0 12px}
+    .rates{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .rate{background:var(--panel);border:1px solid #393126;border-radius:12px;padding:15px}
+    .rate b{display:block;color:var(--gold);font-size:19px;margin-bottom:7px}
+    .rate strong{font-size:23px}
+    .rate small{color:var(--muted);display:block;margin-top:5px}
+    .status{margin-top:24px;padding:14px;border-radius:10px;background:#282014;color:#e9d9b3;font-size:13px;line-height:1.5}
+    footer{text-align:center;color:#777;font-size:11px;margin-top:24px}
+    @media(max-width:420px){main{padding:16px 12px}.rate{padding:12px}.rate strong{font-size:20px}}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="assets/dahbak-logo.png" alt="Dahbak Jewellery logo">
+    <div class="brand">DAHBAK JEWELLERY</div>
+    <div class="arabic" lang="ar" dir="rtl">مجوهرات ذهبك</div>
+  </header>
+  <div class="eyebrow" style="text-align:center">Gold spot price · XAU / USD</div>
+  <div class="spot" id="spot">—</div>
+  <div class="unit">USD per troy ounce</div>
+  <section class="quote-grid">
+    <div class="panel"><span>BID</span><strong id="bid">—</strong></div>
+    <div class="panel"><span>ASK</span><strong id="ask">—</strong></div>
+  </section>
+  <h2>Reference gold rates · QAR / gram</h2>
+  <section class="rates">
+    <div class="rate"><b>24K</b><strong id="k24">—</strong><small>Pure gold</small></div>
+    <div class="rate"><b>22K</b><strong id="k22">—</strong><small>22 karat</small></div>
+    <div class="rate"><b>21K</b><strong id="k21">—</strong><small>21 karat</small></div>
+    <div class="rate"><b>18K</b><strong id="k18">—</strong><small>18 karat</small></div>
+  </section>
+  <div class="status" id="status">Demo preview: live market data is not connected yet. Your website can be published, then connected to a secure gold-price service.</div>
+  <footer>Indicative metal value only · Retail prices may differ due to making charges, taxes and dealer premiums.</footer>
+</main>
+<script>
+const API_URL = ""; // Add your secure backend URL here when it is ready.
+const QAR_PER_USD = 3.64, GRAMS_PER_TROY_OUNCE = 31.1034768;
+const fmt = n => Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+async function refresh(){
+  if(!API_URL){return;}
+  try{
+    const r=await fetch(API_URL.replace(/\/$/,"")+"/api/gold",{cache:"no-store"});
+    if(!r.ok) throw new Error("Market feed unavailable");
+    const d=await r.json();
+    const mid=(Number(d.bidUsd)+Number(d.askUsd))/2;
+    document.getElementById("spot").textContent="$"+fmt(d.spotUsd);
+    document.getElementById("bid").textContent="$"+fmt(d.bidUsd);
+    document.getElementById("ask").textContent="$"+fmt(d.askUsd);
+    [[24,"k24"],[22,"k22"],[21,"k21"],[18,"k18"]].forEach(([k,id])=>{
+      document.getElementById(id).textContent=fmt(mid*QAR_PER_USD/GRAMS_PER_TROY_OUNCE*k/24)+" QAR";
+    });
+    document.getElementById("status").textContent="Market feed connected. Last checked: "+new Date().toLocaleTimeString();
+  }catch(e){document.getElementById("status").textContent="Unable to reach the market feed. Please try again shortly.";}
+}
+refresh(); setInterval(refresh,1000);
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}
+</script>
+</body>
+</html>
